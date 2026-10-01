@@ -405,7 +405,7 @@
 
   <!-- Loading Status Message Below Control Bar -->
   <div id="loadingNotice" class="loading-notice">
-    ⏳ Loading videos, please wait... (<span id="loadedCount">0</span>/12)
+    ⏳ Loading videos, please wait patiently... (<span id="loadedCount">0</span>/12)
   </div>
 </div>
 
@@ -424,27 +424,33 @@
     let isFullyLoaded = false;
     const loadedSet = new Set();
 
+    // Initial video configurations
     videos.forEach(v => {
       v.muted = true;
       v.defaultMuted = true;
       v.pause();
     });
 
+    // Helper: Convert time to wt (0 ~ 2pi)
     function timeToWt(currentTime, duration) {
       if (!duration) return 0;
-      return ((currentTime % duration) / duration) * TWO_PI;
+      const progress = (currentTime % duration) / duration;
+      return progress * TWO_PI;
     }
 
+    // Helper: Convert wt to time
     function wtToTime(wt, duration) {
       if (!duration) return 0;
       return (wt / TWO_PI) * duration;
     }
 
+    // Update display text as wt = X.X pi (1 decimal place)
     function updateWtDisplay(wt) {
       const piFraction = (wt / Math.PI).toFixed(1);
       timeDisplay.innerHTML = `<span class="math">&omega;t</span> = ${piFraction}&pi;`;
     }
 
+    // Master Video Time Update
     masterVideo.addEventListener('timeupdate', () => {
       if (!isSeeking && masterVideo.duration) {
         const wt = timeToWt(masterVideo.currentTime, masterVideo.duration);
@@ -453,10 +459,15 @@
       }
     });
 
+    // Track unique video loading completions
     function markVideoLoaded(index) {
       if (!loadedSet.has(index)) {
         loadedSet.add(index);
         loadedCountSpan.textContent = loadedSet.size;
+
+        if (loadedSet.size >= videos.length) {
+          onAllVideosReady();
+        }
       }
     }
 
@@ -469,91 +480,96 @@
       playBtn.disabled = false;
       seekSlider.disabled = false;
 
+      // Reset seek time to zero cleanly
       videos.forEach(v => {
         v.currentTime = 0;
       });
 
+      // Hide loading notice with smooth fade
       loadingNotice.style.opacity = '0';
       setTimeout(() => {
         loadingNotice.classList.add('hidden');
       }, 500);
     }
 
-    // Single Video Preload - Wait for real playing event to ensure decoder unlock
-    function unlockSingleVideo(v, idx) {
+    // Preload single video natively with fallback timeout
+    function prepareNativeVideo(v, idx) {
       return new Promise((resolve) => {
-        let done = false;
+        let settled = false;
 
         const complete = () => {
-          if (!done) {
-            done = true;
-            v.pause();
-            v.currentTime = 0;
+          if (!settled) {
+            settled = true;
             markVideoLoaded(idx);
             resolve();
           }
         };
 
-        const onPlaying = () => {
-          v.removeEventListener('playing', onPlaying);
+        // If video is already ready
+        if (v.readyState >= 2) {
           complete();
-        };
-
-        v.addEventListener('playing', onPlaying, { once: true });
-
-        // Trigger user-gesture playback to obtain authorization
-        const p = v.play();
-        if (p !== undefined) {
-          p.catch(() => {
-            // Fallback if play is deferred
-            v.currentTime = 0;
-            complete();
-          });
+          return;
         }
 
-        // Safety fallback per video (3s)
+        // Event listeners for browser readiness
+        v.addEventListener('canplaythrough', complete, { once: true });
+        v.addEventListener('canplay', complete, { once: true });
+        v.addEventListener('loadeddata', complete, { once: true });
+
+        // Force Safari media engine wakeup using User Gesture permission
+        try {
+          const promise = v.play();
+          if (promise !== undefined) {
+            promise.then(() => {
+              v.pause();
+              v.currentTime = 0;
+              complete();
+            }).catch(() => {
+              v.load();
+            });
+          } else {
+            v.load();
+          }
+        } catch (e) {
+          v.load();
+        }
+
+        // Safety fallback timeout (2.5 seconds max per video to avoid infinite hanging)
         setTimeout(() => {
           complete();
-        }, 3000);
+        }, 2500);
       });
     }
 
-    // Process videos in batches of 3 to avoid overwhelming mobile decoders
-    async function batchUnlockVideos() {
-      const BATCH_SIZE = 3;
-      for (let i = 0; i < videos.length; i += BATCH_SIZE) {
-        const batch = videos.slice(i, i + BATCH_SIZE);
-        const tasks = batch.map((v, bIdx) => unlockSingleVideo(v, i + bIdx));
-        await Promise.all(tasks);
-      }
-    }
-
+    // Main Control Button Click Logic
     playBtn.addEventListener('click', async () => {
-      // Phase 1: Load & Unlock
+      // Phase 1: User clicks "Load Videos" -> Trigger native Safari media authorization
       if (!isFullyLoaded) {
         playBtn.disabled = true;
         playBtn.textContent = 'Loading...';
         playBtn.style.backgroundColor = '#6c757d';
         loadingNotice.style.display = 'block';
 
-        await batchUnlockVideos();
+        // Prepare all 12 videos concurrently
+        const tasks = videos.map((v, idx) => prepareNativeVideo(v, idx));
+        await Promise.all(tasks);
         onAllVideosReady();
         return;
       }
 
       // Phase 2: Synchronized Play / Pause
       if (masterVideo.paused) {
-        const targetTime = masterVideo.currentTime;
-        
-        // Reset all times first
-        videos.forEach(v => { v.currentTime = targetTime; });
-
-        // Play sequentially with allSettled to ensure phone responds
-        const playPromises = videos.map(v => v.play());
-        await Promise.allSettled(playPromises);
-
-        playBtn.textContent = 'Pause';
-        playBtn.style.backgroundColor = '#dc3545';
+        try {
+          const targetTime = masterVideo.currentTime;
+          videos.forEach(v => {
+            v.currentTime = targetTime;
+            v.play();
+          });
+          playBtn.textContent = 'Pause';
+          playBtn.style.backgroundColor = '#dc3545';
+        } catch (err) {
+          console.error("Playback failed: ", err);
+        }
       } else {
         videos.forEach(v => v.pause());
         playBtn.textContent = 'Play';
@@ -561,6 +577,7 @@
       }
     });
 
+    // Slider Interaction (Seeking with 0.1pi steps)
     seekSlider.addEventListener('input', () => {
       if (!isFullyLoaded) return;
       isSeeking = true;
