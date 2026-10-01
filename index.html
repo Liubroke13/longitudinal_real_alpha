@@ -77,7 +77,7 @@
     }
 
     .play-btn {
-      background-color: #28a745;
+      background-color: #0056b3;
       color: #ffffff;
       border: none;
       padding: 6px 16px;
@@ -88,18 +88,18 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 80px;
+      min-width: 110px;
       transition: background-color 0.2s, opacity 0.2s;
     }
 
     .play-btn:hover:not(:disabled) {
-      background-color: #218838;
+      filter: brightness(0.9);
     }
 
     .play-btn:disabled {
       background-color: #6c757d;
       cursor: not-allowed;
-      opacity: 0.65;
+      opacity: 0.7;
     }
 
     .seek-slider {
@@ -136,12 +136,12 @@
       transition: opacity 0.5s ease;
       width: 100%;
       box-sizing: border-box;
+      display: none;
     }
 
     .loading-notice.hidden {
       opacity: 0;
       pointer-events: none;
-      display: none;
     }
 
     .animation-grid {
@@ -396,9 +396,9 @@
     </div>
   </div>
 
-  <!-- Synchronized Playback Control Bar with Phase (wt) at the Bottom -->
+  <!-- Synchronized Playback Control Bar at the Bottom -->
   <div class="controls-wrapper">
-    <button id="playBtn" class="play-btn" disabled>Play</button>
+    <button id="playBtn" class="play-btn">Load Videos</button>
     <input type="range" id="seekSlider" class="seek-slider" min="0" max="6.2831853" value="0" step="0.01" disabled>
     <div id="timeDisplay" class="time-display"><span class="math">&omega;t</span> = 0.00&pi;</div>
   </div>
@@ -421,54 +421,25 @@
     let isSeeking = false;
     let masterVideo = videos[0];
     const TWO_PI = Math.PI * 2;
-    let loadedVideos = 0;
+    let loadedVideosCount = 0;
+    let isFullyLoaded = false;
+    const loadedSet = new Set();
 
-    // Ensure initial video configurations
+    // Initial video settings
     videos.forEach(v => {
       v.muted = true;
       v.defaultMuted = true;
       v.pause();
     });
 
-    // Check loading state for all videos
-    function checkVideoReady(v) {
-      if (v.readyState >= 2) {
-        onVideoLoaded();
-      } else {
-        v.addEventListener('canplay', onVideoLoaded, { once: true });
-        v.load(); // Trigger load
-      }
-    }
-
-    function onVideoLoaded() {
-      loadedVideos++;
-      if (loadedCountSpan) {
-        loadedCountSpan.textContent = loadedVideos;
-      }
-      if (loadedVideos >= videos.length) {
-        // Enable controls when all videos are ready
-        playBtn.disabled = false;
-        seekSlider.disabled = false;
-        
-        // Hide loading notice with smooth fade
-        loadingNotice.style.opacity = '0';
-        setTimeout(() => {
-          loadingNotice.classList.add('hidden');
-        }, 500);
-      }
-    }
-
-    // Start checking each video
-    videos.forEach(checkVideoReady);
-
-    // Helper: Convert current video time to wt (range 0 ~ 2pi)
+    // Helper: Convert time to wt (0 ~ 2pi)
     function timeToWt(currentTime, duration) {
       if (!duration) return 0;
       const progress = (currentTime % duration) / duration;
       return progress * TWO_PI;
     }
 
-    // Helper: Convert wt (range 0 ~ 2pi) to video target time
+    // Helper: Convert wt to time
     function wtToTime(wt, duration) {
       if (!duration) return 0;
       return (wt / TWO_PI) * duration;
@@ -480,7 +451,7 @@
       timeDisplay.innerHTML = `<span class="math">&omega;t</span> = ${piFraction}&pi;`;
     }
 
-    // Master Video Time Update Syncs the wt Slider
+    // Master Video Time Update
     masterVideo.addEventListener('timeupdate', () => {
       if (!isSeeking && masterVideo.duration) {
         const wt = timeToWt(masterVideo.currentTime, masterVideo.duration);
@@ -489,8 +460,70 @@
       }
     });
 
-    // Master Play/Pause Toggle
+    // Handle video load tracking
+    function markVideoLoaded(index) {
+      if (!loadedSet.has(index)) {
+        loadedSet.add(index);
+        loadedVideosCount = loadedSet.size;
+        loadedCountSpan.textContent = loadedVideosCount;
+
+        if (loadedVideosCount >= videos.length) {
+          onAllVideosReady();
+        }
+      }
+    }
+
+    function onAllVideosReady() {
+      isFullyLoaded = true;
+      playBtn.textContent = 'Play';
+      playBtn.style.backgroundColor = '#28a745';
+      playBtn.disabled = false;
+      seekSlider.disabled = false;
+
+      // Hide loading notice
+      loadingNotice.style.opacity = '0';
+      setTimeout(() => {
+        loadingNotice.classList.add('hidden');
+      }, 500);
+    }
+
+    // Main Control Button Click Logic
     playBtn.addEventListener('click', async () => {
+      // Phase 1: User clicks "Load Videos" to unlock Autoplay permission
+      if (!isFullyLoaded) {
+        playBtn.disabled = true;
+        playBtn.textContent = 'Loading...';
+        playBtn.style.backgroundColor = '#6c757d';
+        loadingNotice.style.display = 'block';
+
+        // Unlock media playback & trigger load for all videos
+        videos.forEach((v, idx) => {
+          if (v.readyState >= 2) {
+            markVideoLoaded(idx);
+          } else {
+            const onReady = () => markVideoLoaded(idx);
+            v.addEventListener('loadeddata', onReady, { once: true });
+            v.addEventListener('canplay', onReady, { once: true });
+            
+            // Wake up Safari media engine
+            const p = v.play();
+            if (p !== undefined) {
+              p.then(() => {
+                v.pause();
+                v.currentTime = 0;
+                markVideoLoaded(idx);
+              }).catch(() => {
+                v.load();
+              });
+            } else {
+              v.load();
+            }
+          }
+        });
+        return;
+      }
+
+      // Phase 2: Toggle Play / Pause after all videos are loaded
       if (masterVideo.paused) {
         try {
           const targetTime = masterVideo.currentTime;
@@ -510,8 +543,9 @@
       }
     });
 
-    // Slider Interaction (Seeking with wt)
+    // Slider Interaction (Seeking)
     seekSlider.addEventListener('input', () => {
+      if (!isFullyLoaded) return;
       isSeeking = true;
       const wt = parseFloat(seekSlider.value);
       const seekTime = wtToTime(wt, masterVideo.duration);
