@@ -71,7 +71,7 @@
       border: 1px solid #ccc;
       border-radius: 6px;
       padding: 8px 16px;
-      margin-top: 16px; /* 移至下方後改為 margin-top */
+      margin-top: 16px;
       width: 100%;
       box-sizing: border-box;
     }
@@ -89,11 +89,17 @@
       align-items: center;
       justify-content: center;
       min-width: 80px;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s, opacity 0.2s;
     }
 
-    .play-btn:hover {
+    .play-btn:hover:not(:disabled) {
       background-color: #218838;
+    }
+
+    .play-btn:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.65;
     }
 
     .seek-slider {
@@ -103,12 +109,39 @@
       accent-color: #0056b3;
     }
 
+    .seek-slider:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
     .time-display {
       font-size: 1rem;
       font-family: 'Times New Roman', Times, serif;
       color: #333;
       min-width: 130px;
       text-align: right;
+    }
+
+    /* Loading Status Notice Below Control Bar */
+    .loading-notice {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 0.95rem;
+      font-family: sans-serif;
+      color: #856404;
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      border-radius: 4px;
+      text-align: center;
+      transition: opacity 0.5s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .loading-notice.hidden {
+      opacity: 0;
+      pointer-events: none;
+      display: none;
     }
 
     .animation-grid {
@@ -365,9 +398,14 @@
 
   <!-- Synchronized Playback Control Bar with Phase (wt) at the Bottom -->
   <div class="controls-wrapper">
-    <button id="playBtn" class="play-btn">Play</button>
-    <input type="range" id="seekSlider" class="seek-slider" min="0" max="6.2831853" value="0" step="0.01">
+    <button id="playBtn" class="play-btn" disabled>Play</button>
+    <input type="range" id="seekSlider" class="seek-slider" min="0" max="6.2831853" value="0" step="0.01" disabled>
     <div id="timeDisplay" class="time-display"><span class="math">&omega;t</span> = 0.00&pi;</div>
+  </div>
+
+  <!-- Loading Status Message Below Control Bar -->
+  <div id="loadingNotice" class="loading-notice">
+    ⏳ Loading videos, please wait patiently... (<span id="loadedCount">0</span>/12)
   </div>
 </div>
 
@@ -377,10 +415,13 @@
     const playBtn = document.getElementById('playBtn');
     const seekSlider = document.getElementById('seekSlider');
     const timeDisplay = document.getElementById('timeDisplay');
+    const loadingNotice = document.getElementById('loadingNotice');
+    const loadedCountSpan = document.getElementById('loadedCount');
     
     let isSeeking = false;
     let masterVideo = videos[0];
     const TWO_PI = Math.PI * 2;
+    let loadedVideos = 0;
 
     // Ensure initial video configurations
     videos.forEach(v => {
@@ -388,6 +429,37 @@
       v.defaultMuted = true;
       v.pause();
     });
+
+    // Check loading state for all videos
+    function checkVideoReady(v) {
+      if (v.readyState >= 2) {
+        onVideoLoaded();
+      } else {
+        v.addEventListener('canplay', onVideoLoaded, { once: true });
+        v.load(); // Trigger load
+      }
+    }
+
+    function onVideoLoaded() {
+      loadedVideos++;
+      if (loadedCountSpan) {
+        loadedCountSpan.textContent = loadedVideos;
+      }
+      if (loadedVideos >= videos.length) {
+        // Enable controls when all videos are ready
+        playBtn.disabled = false;
+        seekSlider.disabled = false;
+        
+        // Hide loading notice with smooth fade
+        loadingNotice.style.opacity = '0';
+        setTimeout(() => {
+          loadingNotice.classList.add('hidden');
+        }, 500);
+      }
+    }
+
+    // Start checking each video
+    videos.forEach(checkVideoReady);
 
     // Helper: Convert current video time to wt (range 0 ~ 2pi)
     function timeToWt(currentTime, duration) {
