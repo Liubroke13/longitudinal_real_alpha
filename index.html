@@ -179,7 +179,7 @@
       color: #000000;
     }
 
-    .video-cell {
+    .canvas-cell {
       position: relative;
       width: 100%;
       aspect-ratio: 1 / 1;
@@ -188,21 +188,16 @@
       overflow: hidden;
     }
 
-    video {
+    canvas {
       width: 100%;
       height: 100%;
-      object-fit: cover;
       display: block;
-      pointer-events: none;
-      -webkit-transform: translateZ(0);
+      object-fit: cover;
     }
 
-    video::-webkit-media-controls {
-      display: none !important;
-    }
-    video::-webkit-media-controls-start-playback-button {
-      display: none !important;
-      -webkit-appearance: none !important;
+    /* Hidden videos container */
+    .hidden-videos {
+      display: none;
     }
 
     .j-overlay {
@@ -292,7 +287,7 @@
   </div>
   <div class="slide-subtitle">(animations are plotted <strong>without</strong> the approximation)</div>
 
-  <!-- Video Animation Grid -->
+  <!-- Video Animation Grid with Canvas Elements -->
   <div class="animation-grid">
     <div class="grid-cell grey-banner sigma-top">
       <span class="math">&sigma;'</span> = &minus;1
@@ -319,23 +314,23 @@
       <span class="math">&ell;</span> = &minus;1
     </div>
     
-    <div class="video-cell" style="grid-column: 3; grid-row: 3;">
-      <video src="l_-1_lp_-1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 3; grid-row: 3;">
+      <canvas data-video="v1"></canvas>
       <div class="j-overlay"><span class="j-bar-text">J</span> = &minus;1</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 4; grid-row: 3;">
-      <video src="l_-1_lp_0_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 4; grid-row: 3;">
+      <canvas data-video="v2"></canvas>
       <div class="j-overlay">&minus;1/2</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 5; grid-row: 3;">
-      <video src="l_-1_lp_1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 5; grid-row: 3;">
+      <canvas data-video="v3"></canvas>
       <div class="j-overlay">0</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 6; grid-row: 3;">
-      <video src="l_-1_lp_2_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 6; grid-row: 3;">
+      <canvas data-video="v4"></canvas>
       <div class="j-overlay">1/2</div>
     </div>
 
@@ -343,23 +338,23 @@
       <span class="math">&ell;</span> = 0
     </div>
 
-    <div class="video-cell" style="grid-column: 3; grid-row: 4;">
-      <video src="l_0_lp_-1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 3; grid-row: 4;">
+      <canvas data-video="v5"></canvas>
       <div class="j-overlay">&minus;1/2</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 4; grid-row: 4;">
-      <video src="l_0_lp_0_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 4; grid-row: 4;">
+      <canvas data-video="v6"></canvas>
       <div class="j-overlay">0</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 5; grid-row: 4;">
-      <video src="l_0_lp_1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 5; grid-row: 4;">
+      <canvas data-video="v7"></canvas>
       <div class="j-overlay">1/2</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 6; grid-row: 4;">
-      <video src="l_0_lp_2_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 6; grid-row: 4;">
+      <canvas data-video="v8"></canvas>
       <div class="j-overlay">1</div>
     </div>
 
@@ -367,23 +362,23 @@
       <span class="math">&ell;</span> = 1
     </div>
 
-    <div class="video-cell" style="grid-column: 3; grid-row: 5;">
-      <video src="l_1_lp_-1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 3; grid-row: 5;">
+      <canvas data-video="v9"></canvas>
       <div class="j-overlay">0</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 4; grid-row: 5;">
-      <video src="l_1_lp_0_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 4; grid-row: 5;">
+      <canvas data-video="v10"></canvas>
       <div class="j-overlay">1/2</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 5; grid-row: 5;">
-      <video src="l_1_lp_1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 5; grid-row: 5;">
+      <canvas data-video="v11"></canvas>
       <div class="j-overlay">1</div>
     </div>
 
-    <div class="video-cell" style="grid-column: 6; grid-row: 5;">
-      <video src="l_1_lp_2_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto" disablePictureInPicture controlsList="nodownload no-fullscreen noremoteplayback"></video>
+    <div class="canvas-cell" style="grid-column: 6; grid-row: 5;">
+      <canvas data-video="v12"></canvas>
       <div class="j-overlay">3/2</div>
     </div>
 
@@ -394,6 +389,22 @@
       </div>
       <div class="colorbar-tick">&minus;1</div>
     </div>
+  </div>
+
+  <!-- Hidden Video Elements acting as pure data sources -->
+  <div class="hidden-videos">
+    <video id="v1" src="l_-1_lp_-1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v2" src="l_-1_lp_0_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v3" src="l_-1_lp_1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v4" src="l_-1_lp_2_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v5" src="l_0_lp_-1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v6" src="l_0_lp_0_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v7" src="l_0_lp_1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v8" src="l_0_lp_2_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v9" src="l_1_lp_-1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v10" src="l_1_lp_0_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v11" src="l_1_lp_1_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
+    <video id="v12" src="l_1_lp_2_longitudinal.mp4" muted loop playsinline webkit-playsinline preload="auto"></video>
   </div>
 
   <!-- Synchronized Playback Control Bar at the Bottom -->
@@ -411,7 +422,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const videos = Array.from(document.querySelectorAll('video'));
+    const canvases = Array.from(document.querySelectorAll('canvas'));
     const playBtn = document.getElementById('playBtn');
     const seekSlider = document.getElementById('seekSlider');
     const timeDisplay = document.getElementById('timeDisplay');
@@ -419,29 +430,40 @@
     const loadedCountSpan = document.getElementById('loadedCount');
     
     let isSeeking = false;
-    let masterVideo = videos[0];
+    let isPlaying = false;
     const TWO_PI = Math.PI * 2;
     let isFullyLoaded = false;
     const loadedSet = new Set();
+    
+    // Virtual Master Clock for Canvas animation synchronization
+    let currentTime = 0;
+    let duration = 2.0; // Default fallback, updated once video loads
+    let lastAnimTime = 0;
+    let animationFrameId = null;
 
-    // Initial video configurations
-    videos.forEach(v => {
-      v.muted = true;
-      v.defaultMuted = true;
-      v.pause();
+    // Map canvases with their corresponding video source
+    const items = canvases.map(canvas => {
+      const vidId = canvas.getAttribute('data-video');
+      const video = document.getElementById(vidId);
+      const ctx = canvas.getContext('2d');
+      video.muted = true;
+      video.defaultMuted = true;
+      return { canvas, ctx, video };
     });
 
+    const masterVideo = items[0].video;
+
     // Helper: Convert time to wt (0 ~ 2pi)
-    function timeToWt(currentTime, duration) {
-      if (!duration) return 0;
-      const progress = (currentTime % duration) / duration;
+    function timeToWt(t, dur) {
+      if (!dur) return 0;
+      const progress = (t % dur) / dur;
       return progress * TWO_PI;
     }
 
     // Helper: Convert wt to time
-    function wtToTime(wt, duration) {
-      if (!duration) return 0;
-      return (wt / TWO_PI) * duration;
+    function wtToTime(wt, dur) {
+      if (!dur) return 0;
+      return (wt / TWO_PI) * dur;
     }
 
     // Update display text as wt = X.X pi (1 decimal place)
@@ -450,22 +472,53 @@
       timeDisplay.innerHTML = `<span class="math">&omega;t</span> = ${piFraction}&pi;`;
     }
 
-    // Master Video Time Update
-    masterVideo.addEventListener('timeupdate', () => {
-      if (!isSeeking && masterVideo.duration) {
-        const wt = timeToWt(masterVideo.currentTime, masterVideo.duration);
+    // Draw video frame to canvas
+    function drawCanvasFrame(item, t) {
+      const { canvas, ctx, video } = item;
+      if (video.readyState >= 2) {
+        if (canvas.width === 0 || canvas.height === 0) {
+          canvas.width = video.videoWidth || 300;
+          canvas.height = video.videoHeight || 300;
+        }
+        // Sync video internal time for frame rendering
+        if (Math.abs(video.currentTime - t) > 0.03) {
+          video.currentTime = t;
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // Render all 12 canvases at the exact same virtual time
+    function renderAllCanvases(t) {
+      items.forEach(item => drawCanvasFrame(item, t));
+    }
+
+    // Canvas Master Animation Loop (Driven by requestAnimationFrame)
+    function animLoop(now) {
+      if (!isPlaying) return;
+      
+      if (!lastAnimTime) lastAnimTime = now;
+      const delta = (now - lastAnimTime) / 1000;
+      lastAnimTime = now;
+
+      currentTime = (currentTime + delta) % duration;
+      renderAllCanvases(currentTime);
+
+      if (!isSeeking) {
+        const wt = timeToWt(currentTime, duration);
         seekSlider.value = wt;
         updateWtDisplay(wt);
       }
-    });
 
-    // Track unique video loading completions
-    function markVideoLoaded(index) {
-      if (!loadedSet.has(index)) {
-        loadedSet.add(index);
+      animationFrameId = requestAnimationFrame(animLoop);
+    }
+
+    function markVideoLoaded(idx) {
+      if (!loadedSet.has(idx)) {
+        loadedSet.add(idx);
         loadedCountSpan.textContent = loadedSet.size;
 
-        if (loadedSet.size >= videos.length) {
+        if (loadedSet.size >= items.length) {
           onAllVideosReady();
         }
       }
@@ -475,26 +528,30 @@
       if (isFullyLoaded) return;
       isFullyLoaded = true;
       
+      if (masterVideo.duration) {
+        duration = masterVideo.duration;
+      }
+
       playBtn.textContent = 'Play';
       playBtn.style.backgroundColor = '#28a745';
       playBtn.disabled = false;
       seekSlider.disabled = false;
 
-      // Reset seek time to zero cleanly
-      videos.forEach(v => {
-        v.currentTime = 0;
-      });
+      // Render initial frame to all canvases
+      currentTime = 0;
+      renderAllCanvases(0);
 
-      // Hide loading notice with smooth fade
+      // Hide loading notice
       loadingNotice.style.opacity = '0';
       setTimeout(() => {
         loadingNotice.classList.add('hidden');
       }, 500);
     }
 
-    // Preload single video natively with fallback timeout
-    function prepareNativeVideo(v, idx) {
+    // Preload single video natively
+    function prepareVideo(item, idx) {
       return new Promise((resolve) => {
+        const { video } = item;
         let settled = false;
 
         const complete = () => {
@@ -505,73 +562,48 @@
           }
         };
 
-        // If video is already ready
-        if (v.readyState >= 2) {
+        if (video.readyState >= 2) {
           complete();
           return;
         }
 
-        // Event listeners for browser readiness
-        v.addEventListener('canplaythrough', complete, { once: true });
-        v.addEventListener('canplay', complete, { once: true });
-        v.addEventListener('loadeddata', complete, { once: true });
+        video.addEventListener('canplaythrough', complete, { once: true });
+        video.addEventListener('canplay', complete, { once: true });
+        video.addEventListener('loadeddata', complete, { once: true });
 
-        // Force Safari media engine wakeup using User Gesture permission
-        try {
-          const promise = v.play();
-          if (promise !== undefined) {
-            promise.then(() => {
-              v.pause();
-              v.currentTime = 0;
-              complete();
-            }).catch(() => {
-              v.load();
-            });
-          } else {
-            v.load();
-          }
-        } catch (e) {
-          v.load();
-        }
+        // Trigger loading
+        video.load();
 
-        // Safety fallback timeout (2.5 seconds max per video to avoid infinite hanging)
-        setTimeout(() => {
-          complete();
-        }, 2500);
+        // Safety fallback timeout
+        setTimeout(complete, 2000);
       });
     }
 
-    // Main Control Button Click Logic
+    // Main Play/Pause Button Logic
     playBtn.addEventListener('click', async () => {
-      // Phase 1: User clicks "Load Videos" -> Trigger native Safari media authorization
+      // Phase 1: Load Videos
       if (!isFullyLoaded) {
         playBtn.disabled = true;
         playBtn.textContent = 'Loading...';
         playBtn.style.backgroundColor = '#6c757d';
         loadingNotice.style.display = 'block';
 
-        // Prepare all 12 videos concurrently
-        const tasks = videos.map((v, idx) => prepareNativeVideo(v, idx));
+        const tasks = items.map((item, idx) => prepareVideo(item, idx));
         await Promise.all(tasks);
         onAllVideosReady();
         return;
       }
 
-      // Phase 2: Synchronized Play / Pause
-      if (masterVideo.paused) {
-        try {
-          const targetTime = masterVideo.currentTime;
-          videos.forEach(v => {
-            v.currentTime = targetTime;
-            v.play();
-          });
-          playBtn.textContent = 'Pause';
-          playBtn.style.backgroundColor = '#dc3545';
-        } catch (err) {
-          console.error("Playback failed: ", err);
-        }
+      // Phase 2: Canvas Animation Play / Pause Toggle
+      if (!isPlaying) {
+        isPlaying = true;
+        lastAnimTime = 0;
+        playBtn.textContent = 'Pause';
+        playBtn.style.backgroundColor = '#dc3545';
+        animationFrameId = requestAnimationFrame(animLoop);
       } else {
-        videos.forEach(v => v.pause());
+        isPlaying = false;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
         playBtn.textContent = 'Play';
         playBtn.style.backgroundColor = '#28a745';
       }
@@ -582,10 +614,8 @@
       if (!isFullyLoaded) return;
       isSeeking = true;
       const wt = parseFloat(seekSlider.value);
-      const seekTime = wtToTime(wt, masterVideo.duration);
-      videos.forEach(v => {
-        v.currentTime = seekTime;
-      });
+      currentTime = wtToTime(wt, duration);
+      renderAllCanvases(currentTime);
       updateWtDisplay(wt);
     });
 
