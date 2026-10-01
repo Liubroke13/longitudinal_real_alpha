@@ -28,7 +28,7 @@
       text-align: center;
       font-size: 0.95rem;
       width: 100%;
-      max-width: 960px;
+      max-width: 1050px;
       box-sizing: border-box;
     }
 
@@ -59,6 +59,56 @@
     .math {
       font-family: 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;
       font-style: italic;
+    }
+
+    /* Unified Control Bar Styles */
+    .controls-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background-color: #f2f2f2;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px 16px;
+      margin-top: 16px; /* 移至下方後改為 margin-top */
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .play-btn {
+      background-color: #28a745;
+      color: #ffffff;
+      border: none;
+      padding: 6px 16px;
+      font-size: 1rem;
+      font-family: inherit;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 80px;
+      transition: background-color 0.2s;
+    }
+
+    .play-btn:hover {
+      background-color: #218838;
+    }
+
+    .seek-slider {
+      flex-grow: 1;
+      height: 6px;
+      cursor: pointer;
+      accent-color: #0056b3;
+    }
+
+    .time-display {
+      font-size: 1rem;
+      font-family: 'Times New Roman', Times, serif;
+      color: #333;
+      min-width: 130px;
+      text-align: right;
     }
 
     .animation-grid {
@@ -110,11 +160,10 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      pointer-events: none; /* Prevents touch/click native UI buttons on iPad */
+      pointer-events: none;
       -webkit-transform: translateZ(0);
     }
 
-    /* Remove WebKit play controls overlay on iOS/iPadOS */
     video::-webkit-media-controls {
       display: none !important;
     }
@@ -210,6 +259,7 @@
   </div>
   <div class="slide-subtitle">(animations are plotted <strong>without</strong> the approximation)</div>
 
+  <!-- Video Animation Grid -->
   <div class="animation-grid">
     <div class="grid-cell grey-banner sigma-top">
       <span class="math">&sigma;'</span> = &minus;1
@@ -312,59 +362,97 @@
       <div class="colorbar-tick">&minus;1</div>
     </div>
   </div>
+
+  <!-- Synchronized Playback Control Bar with Phase (wt) at the Bottom -->
+  <div class="controls-wrapper">
+    <button id="playBtn" class="play-btn">Play</button>
+    <input type="range" id="seekSlider" class="seek-slider" min="0" max="6.2831853" value="0" step="0.01">
+    <div id="timeDisplay" class="time-display"><span class="math">&omega;t</span> = 0.00&pi;</div>
+  </div>
 </div>
 
 <script>
-  async function syncAndPlayAllVideos() {
+  document.addEventListener('DOMContentLoaded', () => {
     const videos = Array.from(document.querySelectorAll('video'));
+    const playBtn = document.getElementById('playBtn');
+    const seekSlider = document.getElementById('seekSlider');
+    const timeDisplay = document.getElementById('timeDisplay');
+    
+    let isSeeking = false;
+    let masterVideo = videos[0];
+    const TWO_PI = Math.PI * 2;
 
-    // Step 1: Ensure muted state is set programmatically BEFORE loading
+    // Ensure initial video configurations
     videos.forEach(v => {
       v.muted = true;
       v.defaultMuted = true;
       v.pause();
     });
 
-    // Step 2: Wait until every video has loaded enough frame data (readyState >= 2)
-    const loadPromises = videos.map(v => {
-      return new Promise((resolve) => {
-        if (v.readyState >= 2) {
-          resolve();
-        } else {
-          v.addEventListener('canplay', () => resolve(), { once: true });
-          v.load();
+    // Helper: Convert current video time to wt (range 0 ~ 2pi)
+    function timeToWt(currentTime, duration) {
+      if (!duration) return 0;
+      const progress = (currentTime % duration) / duration;
+      return progress * TWO_PI;
+    }
+
+    // Helper: Convert wt (range 0 ~ 2pi) to video target time
+    function wtToTime(wt, duration) {
+      if (!duration) return 0;
+      return (wt / TWO_PI) * duration;
+    }
+
+    // Update display text as wt = X.XX pi
+    function updateWtDisplay(wt) {
+      const piFraction = (wt / Math.PI).toFixed(2);
+      timeDisplay.innerHTML = `<span class="math">&omega;t</span> = ${piFraction}&pi;`;
+    }
+
+    // Master Video Time Update Syncs the wt Slider
+    masterVideo.addEventListener('timeupdate', () => {
+      if (!isSeeking && masterVideo.duration) {
+        const wt = timeToWt(masterVideo.currentTime, masterVideo.duration);
+        seekSlider.value = wt;
+        updateWtDisplay(wt);
+      }
+    });
+
+    // Master Play/Pause Toggle
+    playBtn.addEventListener('click', async () => {
+      if (masterVideo.paused) {
+        try {
+          const targetTime = masterVideo.currentTime;
+          videos.forEach(v => {
+            v.currentTime = targetTime;
+            v.play();
+          });
+          playBtn.textContent = 'Pause';
+          playBtn.style.backgroundColor = '#dc3545';
+        } catch (err) {
+          console.error("Playback failed: ", err);
         }
+      } else {
+        videos.forEach(v => v.pause());
+        playBtn.textContent = 'Play';
+        playBtn.style.backgroundColor = '#28a745';
+      }
+    });
+
+    // Slider Interaction (Seeking with wt)
+    seekSlider.addEventListener('input', () => {
+      isSeeking = true;
+      const wt = parseFloat(seekSlider.value);
+      const seekTime = wtToTime(wt, masterVideo.duration);
+      videos.forEach(v => {
+        v.currentTime = seekTime;
       });
+      updateWtDisplay(wt);
     });
 
-    await Promise.all(loadPromises);
-
-    // Step 3: Align playback time to 0.0 seconds across all videos
-    videos.forEach(v => {
-      v.currentTime = 0;
+    seekSlider.addEventListener('change', () => {
+      isSeeking = false;
     });
-
-    // Step 4: Batch play simultaneously
-    const playPromises = videos.map(v => v.play());
-    
-    // Fallback trigger for iOS/iPad initial user interaction policy
-    Promise.all(playPromises).catch(() => {
-      const forcePlayOnInteraction = () => {
-        videos.forEach(v => {
-          v.currentTime = 0;
-          v.play();
-        });
-      };
-      document.addEventListener('touchstart', forcePlayOnInteraction, { once: true });
-      document.addEventListener('click', forcePlayOnInteraction, { once: true });
-    });
-  }
-
-  if (document.readyState === 'complete') {
-    syncAndPlayAllVideos();
-  } else {
-    window.addEventListener('load', syncAndPlayAllVideos);
-  }
+  });
 </script>
 
 </body>
